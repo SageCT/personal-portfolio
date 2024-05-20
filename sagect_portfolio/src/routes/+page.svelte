@@ -1,5 +1,7 @@
-<script lang="ts"></script>
+<script lang="ts">
+	import Header from '$lib/components/header.svelte';
+</script>
 
-<header></header>
-
-<main></main>
+<main class="bg-black flex flex-col">
+	<Header />
+</main>
