@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, Moon, Sun } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SageMark } from "@/components/site/brand";
 import { useTheme } from "@/components/site/use-theme";
@@ -21,16 +22,16 @@ const EMAIL = "sageturn01@gmail.com";
 
 export function SiteNav() {
   const { theme, toggleTheme } = useTheme();
-  const [progress, setProgress] = useState(0);
   const [lifted, setLifted] = useState(false);
   const [active, setActive] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
+  // Section links only scroll on the home page; elsewhere they navigate to it.
+  const onHome = usePathname() === "/";
+  const sectionHref = (id: string) => (onHome ? `#${id}` : `/#${id}`);
 
   useEffect(() => {
     const onScroll = () => {
       const el = document.documentElement;
-      const max = el.scrollHeight - el.clientHeight;
-      setProgress(max > 0 ? el.scrollTop / max : 0);
       setLifted(el.scrollTop > 12);
 
       let current = "";
@@ -61,7 +62,7 @@ export function SiteNav() {
     >
       <div className="flex items-center justify-between px-6 py-4 md:px-14 md:py-5">
         <a
-          href="#top"
+          href={onHome ? "#top" : "/"}
           className="shrink-0"
           aria-label="Sage Turner — back to top"
         >
@@ -73,7 +74,12 @@ export function SiteNav() {
           aria-label="Sections"
         >
           {LINKS.map(({ id, label }) => (
-            <NavLink key={id} id={id} label={label} active={active === id} />
+            <NavLink
+              key={id}
+              href={sectionHref(id)}
+              label={label}
+              active={onHome && active === id}
+            />
           ))}
         </nav>
 
@@ -114,7 +120,7 @@ export function SiteNav() {
                 {LINKS.map(({ id, label }) => (
                   <a
                     key={id}
-                    href={`#${id}`}
+                    href={sectionHref(id)}
                     onClick={() => setMenuOpen(false)}
                   >
                     {label}
@@ -128,32 +134,22 @@ export function SiteNav() {
           </Sheet>
         </div>
       </div>
-
-      <div className="h-0.5 w-full">
-        <div
-          className="h-full transition-[width] duration-100 ease-linear"
-          style={{
-            width: `${progress * 100}%`,
-            background: "linear-gradient(90deg, #E43E2B, #F0B501, #60C166)",
-          }}
-        />
-      </div>
     </header>
   );
 }
 
 function NavLink({
-  id,
+  href,
   label,
   active,
 }: {
-  id: string;
+  href: string;
   label: string;
   active: boolean;
 }) {
   return (
     <a
-      href={`#${id}`}
+      href={href}
       className={cn(
         "relative text-[15px] transition-opacity duration-300",
         active ? "opacity-100" : "opacity-60 hover:opacity-100",

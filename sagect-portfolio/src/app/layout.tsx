@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { ProjectTransitionProvider } from "@/components/site/project-transition";
 import { ThemeScript } from "@/components/site/theme-script";
 import "./globals.css";
 
@@ -36,7 +37,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <ThemeScript />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ProjectTransitionProvider>{children}</ProjectTransitionProvider>
+      </body>
     </html>
   );
 }
