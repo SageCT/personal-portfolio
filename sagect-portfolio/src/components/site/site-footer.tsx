@@ -1,6 +1,5 @@
 import { BRAND, SageMark } from "@/components/site/brand";
-
-const EMAIL = "sageturn01@gmail.com";
+import { EMAIL, GITHUB, LINKEDIN } from "@/lib/contact";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -37,7 +36,7 @@ export function SiteFooter() {
             {EMAIL}
           </a>
           <a
-            href="https://github.com/SageCT/"
+            href={GITHUB}
             target="_blank"
             rel="noreferrer"
             className="rounded-full border px-6 py-3.5 text-[15px] font-semibold transition-[transform,background] duration-[250ms] hover:-translate-y-0.5 hover:bg-white/[0.06]"
@@ -45,7 +44,25 @@ export function SiteFooter() {
           >
             github.com/SageCT ↗
           </a>
+          <a
+            href={LINKEDIN}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border px-6 py-3.5 text-[15px] font-semibold transition-[transform,background] duration-[250ms] hover:-translate-y-0.5 hover:bg-white/[0.06]"
+            style={{ borderColor: "var(--site-inv-line)" }}
+          >
+            in/sageturn01 ↗
+          </a>
         </div>
+
+        <p className="mt-7">
+          <a
+            href="/contact"
+            className="font-serif text-[19px] italic underline-offset-[6px] hover:underline"
+          >
+            All the ways to reach me →
+          </a>
+        </p>
 
         <div
           className="mt-22 flex flex-wrap items-end justify-between gap-6 border-t pt-7"

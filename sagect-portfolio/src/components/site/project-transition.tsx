@@ -14,8 +14,18 @@ import {
 
 type Rect = { top: number; left: number; width: number; height: number };
 
+/**
+ * What happens once the flood fills the screen.
+ * - `route`: an in-app navigation; the destination calls `land()` when painted.
+ * - `external`: leave the site entirely; the flood rides out the unload.
+ * - `handoff`: hand off to the OS (a `mailto:`) — the page stays put, so the
+ *   flood has to retract itself.
+ */
+type FlightMode = "route" | "external" | "handoff";
+
 type Flight = {
   href: string;
+  mode: FlightMode;
   color: string;
   ink: string;
   label: string;
@@ -28,14 +38,23 @@ type Flight = {
 };
 
 type TransitionApi = {
-  /** Grow `el` into a full-bleed flood of `color`, then navigate to `href`. */
+  /** Grow `el` into a full-bleed flood of `color`, then follow `href`. */
   launch: (
     el: HTMLElement,
-    opts: { href: string; color: string; ink: string; label: string },
+    opts: {
+      href: string;
+      color: string;
+      ink: string;
+      label: string;
+      mode?: FlightMode;
+    },
   ) => void;
   /** Called by the destination page once it is on screen. */
   land: () => void;
 };
+
+/** How long a `handoff` flood holds before retracting. */
+const HANDOFF_HOLD_MS = 650;
 
 const Ctx = createContext<TransitionApi | null>(null);
 
@@ -60,10 +79,18 @@ export function ProjectTransitionProvider({
   const [flight, setFlight] = useState<Flight | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const follow = useCallback(
+    (href: string, mode: FlightMode) => {
+      if (mode === "route") router.push(href);
+      else window.location.href = href;
+    },
+    [router],
+  );
+
   const launch = useCallback<TransitionApi["launch"]>(
-    (el, { href, color, ink, label }) => {
+    (el, { href, color, ink, label, mode = "route" }) => {
       if (reduced) {
-        router.push(href);
+        follow(href, mode);
         return;
       }
       const box = el.getBoundingClientRect();
@@ -72,6 +99,7 @@ export function ProjectTransitionProvider({
       );
       setFlight({
         href,
+        mode,
         color,
         ink,
         label,
@@ -86,7 +114,7 @@ export function ProjectTransitionProvider({
         landed: false,
       });
     },
-    [reduced, router],
+    [reduced, follow],
   );
 
   const land = useCallback(() => {
@@ -132,7 +160,13 @@ export function ProjectTransitionProvider({
               transition: { duration: 0.5, ease: "easeOut" },
             }}
             transition={{ duration: 0.62, ease: [0.72, 0, 0.16, 1] }}
-            onAnimationComplete={() => router.push(flight.href)}
+            onAnimationComplete={() => {
+              follow(flight.href, flight.mode);
+              // A mailto leaves the page standing, so nothing will report in.
+              if (flight.mode === "handoff") {
+                setTimeout(land, HANDOFF_HOLD_MS);
+              }
+            }}
           >
             {/* Bloom — the "glow" the card carries with it into the page. */}
             <motion.span

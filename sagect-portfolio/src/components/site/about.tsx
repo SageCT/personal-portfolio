@@ -12,7 +12,7 @@ export function About() {
   return (
     <section
       id="about"
-      className="relative scroll-mt-20 overflow-hidden px-6 py-20 md:px-14 md:py-32"
+      className="relative scroll-mt-28 overflow-hidden px-6 py-20 md:px-14 md:py-32"
       style={{ background: "var(--site-inv-bg)", color: "var(--site-inv-ink)" }}
     >
       <ConfettiField count={16} seed={7} opacity={0.32} sizeRange={[5, 15]} />

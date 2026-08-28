@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BRAND, ConfettiField } from "@/components/site/brand";
 import { Reveal } from "@/components/site/reveal";
+import { cn } from "@/lib/utils";
 
 const ROLES = [
   { label: "fullstack engineer", color: BRAND.red },
@@ -17,7 +18,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative overflow-hidden py-20 md:pt-[132px] md:pb-[116px]"
+      className="relative overflow-hidden pt-28 pb-20 md:pt-[132px] md:pb-[116px]"
     >
       <ConfettiField count={18} seed={3} opacity={0.4} sizeRange={[4, 14]} />
 
@@ -61,7 +62,12 @@ export function Hero() {
             style={{ borderTopColor: "var(--site-line)" }}
           >
             <p className="max-w-[540px] text-[19px] leading-[1.55] text-pretty">
-              A <RoleCycler /> currently engineering systems at{" "}
+              {/* The role gets its own line, so nothing trails off the end of
+                  it as the labels cycle. */}
+              <span className="block">
+                A <RoleCycler />
+              </span>
+              currently engineering systems at{" "}
               <span className="font-semibold">Vanguard</span>. University of
               Houston, class of &rsquo;25.
             </p>
@@ -117,7 +123,13 @@ function Squiggle() {
   );
 }
 
-/** Cycles job titles in a clipped slot so each one flips up into place. */
+/**
+ * Cycles job titles in a clipped slot so each one flips up into place.
+ *
+ * Every label is rendered into the same grid cell — the inactive ones stay in
+ * layout but hidden, so the slot is always as wide as the longest title and the
+ * sentence after it never reflows mid-flip.
+ */
 function RoleCycler() {
   const [index, setIndex] = useState(0);
 
@@ -129,19 +141,22 @@ function RoleCycler() {
     return () => clearInterval(id);
   }, []);
 
-  const role = ROLES[index];
-
   return (
     <span className="inline-grid h-[1.55em] overflow-hidden align-bottom">
-      <span
-        key={index}
-        className="animate-roleflip font-semibold"
-        style={{ color: role.color }}
-        // The label changes on a timer; announcing every flip would be noise.
-        aria-hidden="true"
-      >
-        {role.label}
-      </span>
+      {ROLES.map((role, i) => (
+        <span
+          key={role.label}
+          className={cn(
+            "col-start-1 row-start-1 font-semibold whitespace-nowrap",
+            i === index ? "animate-roleflip" : "invisible",
+          )}
+          style={{ color: role.color }}
+          // The label changes on a timer; announcing every flip would be noise.
+          aria-hidden="true"
+        >
+          {role.label}
+        </span>
+      ))}
       <span className="sr-only">fullstack engineer</span>
     </span>
   );

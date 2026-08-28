@@ -18,11 +18,14 @@ const LINKS = [
   { id: "about", label: "About" },
 ] as const;
 
-const EMAIL = "sageturn01@gmail.com";
-
+/**
+ * Floating frosted pill, after the Mobbin header: a fixed, centered capsule
+ * hovering over the page rather than a full-width bar attached to it.
+ * Geometry is theirs — 584px cap, 60px tall, 30px radius, 48px backdrop blur —
+ * the contents and tokens are ours.
+ */
 export function SiteNav() {
   const { theme, toggleTheme } = useTheme();
-  const [lifted, setLifted] = useState(false);
   const [active, setActive] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
   // Section links only scroll on the home page; elsewhere they navigate to it.
@@ -31,9 +34,6 @@ export function SiteNav() {
 
   useEffect(() => {
     const onScroll = () => {
-      const el = document.documentElement;
-      setLifted(el.scrollTop > 12);
-
       let current = "";
       for (const { id } of LINKS) {
         const section = document.getElementById(id);
@@ -53,54 +53,53 @@ export function SiteNav() {
   }, []);
 
   return (
-    <header
-      className="sticky top-0 z-50 border-b backdrop-blur-[16px] backdrop-saturate-[180%] transition-[border-color] duration-300"
-      style={{
-        background: "color-mix(in srgb, var(--site-bg) 85%, transparent)",
-        borderBottomColor: lifted ? "var(--site-line)" : "transparent",
-      }}
-    >
-      <div className="flex items-center justify-between px-6 py-4 md:px-14 md:py-5">
+    <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-2 md:px-6 md:pt-6">
+      <nav
+        className="flex h-[60px] w-full max-w-[584px] items-center gap-2.5 rounded-[30px] pr-3 pl-4 backdrop-blur-[48px] backdrop-saturate-[180%] md:pr-3 md:pl-6"
+        style={{
+          background: "color-mix(in srgb, var(--site-bg) 64%, transparent)",
+          border: "1px solid var(--site-line)",
+          boxShadow: "0 8px 32px -16px rgb(0 0 0 / 0.25)",
+        }}
+      >
         <a
           href={onHome ? "#top" : "/"}
-          className="shrink-0"
+          className="shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
           aria-label="Sage Turner — back to top"
         >
-          <SageMark size={26} />
+          <SageMark size={24} showWord={false} inkColor="var(--site-bg)" />
         </a>
 
-        <nav
-          className="hidden items-center gap-8 md:flex"
-          aria-label="Sections"
+        {/* Bare icon beside the mark — no chrome of its own. */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+          className="grid size-8 shrink-0 place-items-center rounded-full opacity-70 transition-opacity duration-[250ms] hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
         >
-          {LINKS.map(({ id, label }) => (
-            <NavLink
-              key={id}
-              href={sectionHref(id)}
-              label={label}
-              active={onHome && active === id}
-            />
-          ))}
-        </nav>
+          {theme === "dark" ? (
+            <Sun className="size-4" />
+          ) : (
+            <Moon className="size-4" />
+          )}
+        </button>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="grid size-[34px] place-items-center rounded-full border transition-colors duration-[250ms] hover:bg-[var(--site-hair)]"
-            style={{ borderColor: "var(--site-line)" }}
-          >
-            {theme === "dark" ? (
-              <Sun className="size-4" />
-            ) : (
-              <Moon className="size-4" />
-            )}
-          </button>
+        {/* Trailing group — 20px gap, pinned right, matching the reference. */}
+        <div className="ml-auto flex items-center gap-5">
+          <div className="hidden items-center gap-5 md:flex">
+            {LINKS.map(({ id, label }) => (
+              <NavLink
+                key={id}
+                href={sectionHref(id)}
+                label={label}
+                active={onHome && active === id}
+              />
+            ))}
+          </div>
 
           <a
-            href={`mailto:${EMAIL}`}
-            className="hidden rounded-full px-[18px] py-[9px] text-sm font-medium transition-transform duration-[250ms] hover:-translate-y-px sm:inline-block"
+            href="/contact"
+            className="hidden shrink-0 rounded-full px-[18px] py-[9px] text-[15px] font-semibold tracking-[0.2px] transition-transform duration-[250ms] hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current sm:inline-block"
             style={{ background: "var(--site-ink)", color: "var(--site-bg)" }}
           >
             Get in touch
@@ -108,7 +107,7 @@ export function SiteNav() {
 
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger
-              className="grid size-[34px] place-items-center rounded-full border md:hidden"
+              className="grid size-10 shrink-0 place-items-center rounded-full border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current md:hidden"
               style={{ borderColor: "var(--site-line)" }}
               aria-label="Open menu"
             >
@@ -126,18 +125,19 @@ export function SiteNav() {
                     {label}
                   </a>
                 ))}
-                <a href={`mailto:${EMAIL}`} onClick={() => setMenuOpen(false)}>
+                <a href="/contact" onClick={() => setMenuOpen(false)}>
                   Get in touch
                 </a>
               </nav>
             </SheetContent>
           </Sheet>
         </div>
-      </div>
+      </nav>
     </header>
   );
 }
 
+/** 16px / 600 / 0.2px tracking — the reference's link type. */
 function NavLink({
   href,
   label,
@@ -151,8 +151,8 @@ function NavLink({
     <a
       href={href}
       className={cn(
-        "relative text-[15px] transition-opacity duration-300",
-        active ? "opacity-100" : "opacity-60 hover:opacity-100",
+        "relative text-base leading-[22px] font-semibold tracking-[0.2px] transition-opacity duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current",
+        active ? "opacity-100" : "opacity-70 hover:opacity-100",
       )}
     >
       {label}
