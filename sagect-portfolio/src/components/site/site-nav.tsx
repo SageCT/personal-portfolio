@@ -13,9 +13,16 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
+/** Anchors into the home page's sections. */
 const LINKS = [
   { id: "work", label: "Work" },
   { id: "about", label: "About" },
+] as const;
+
+/** Standalone routes, always absolute. */
+const PAGES = [
+  { href: "/photography", label: "Photos" },
+  { href: "/reading", label: "Reading" },
 ] as const;
 
 /**
@@ -29,7 +36,8 @@ export function SiteNav() {
   const [active, setActive] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
   // Section links only scroll on the home page; elsewhere they navigate to it.
-  const onHome = usePathname() === "/";
+  const pathname = usePathname();
+  const onHome = pathname === "/";
   const sectionHref = (id: string) => (onHome ? `#${id}` : `/#${id}`);
 
   useEffect(() => {
@@ -95,6 +103,14 @@ export function SiteNav() {
                 active={onHome && active === id}
               />
             ))}
+            {PAGES.map(({ href, label }) => (
+              <NavLink
+                key={href}
+                href={href}
+                label={label}
+                active={pathname === href}
+              />
+            ))}
           </div>
 
           <a
@@ -122,6 +138,11 @@ export function SiteNav() {
                     href={sectionHref(id)}
                     onClick={() => setMenuOpen(false)}
                   >
+                    {label}
+                  </a>
+                ))}
+                {PAGES.map(({ href, label }) => (
+                  <a key={href} href={href} onClick={() => setMenuOpen(false)}>
                     {label}
                   </a>
                 ))}

@@ -1,5 +1,8 @@
 import { BRAND, ConfettiField } from "@/components/site/brand";
 import { Reveal } from "@/components/site/reveal";
+import { SHELF } from "@/lib/books";
+import { PHOTOS } from "@/lib/photos";
+import { PROJECTS } from "@/lib/projects";
 
 const FACTS = [
   { key: "Location", value: "Philadelphia, PA", accent: BRAND.green },
@@ -7,6 +10,43 @@ const FACTS = [
   { key: "Alma mater", value: "U. of Houston '25", accent: BRAND.blue },
   { key: "Pronouns", value: "he/him", accent: BRAND.yellow },
 ] as const;
+
+type Thread = {
+  href: string;
+  meta: string;
+  title: string;
+  note: string;
+  accent: string;
+};
+
+/**
+ * Everything on the site that isn't this page, in one index: the case studies
+ * from `PROJECTS`, then the two standalone pages. Derived rather than typed
+ * out, so adding a project or a photo shows up here without a second edit.
+ */
+const THREADS: readonly Thread[] = [
+  ...PROJECTS.map((project) => ({
+    href: `/work/${project.slug}`,
+    meta: project.year,
+    title: project.name,
+    note: project.role,
+    accent: project.bg,
+  })),
+  {
+    href: "/photography",
+    meta: `${PHOTOS.length} frames`,
+    title: "Photography",
+    note: "Digital and film, mostly after dark",
+    accent: BRAND.blue,
+  },
+  {
+    href: "/reading",
+    meta: `${SHELF.length} books`,
+    title: "Reading",
+    note: "Short reviews of what's on the shelf",
+    accent: BRAND.red,
+  },
+];
 
 export function About() {
   return (
@@ -69,18 +109,87 @@ export function About() {
               </p>
               <p>
                 Before that: four years at the University of Houston. I led
-                Computer Science Girls, collected a dozen half-finished side
-                projects, and learned that the best software feels a bit like{" "}
-                <em style={{ color: BRAND.yellow }}>magic</em>.
+                Computer Science Girls and rebuilt the org&rsquo;s site from a
+                dated WordPress install into a rebrand designed in Figma with
+                the officer team &mdash; it still runs at{" "}
+                <a
+                  href="https://www.csgirls.org"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline decoration-[1.5px] underline-offset-4 transition-opacity hover:opacity-70"
+                  style={{ textDecorationColor: BRAND.royal }}
+                >
+                  csgirls.org
+                </a>
+                . I led the front end for Shastamart, a storefront five of us
+                built over a MySQL schema, and shipped the Rides tab of a
+                SwiftUI app that was clicked through as a mockup long before it
+                was code.
               </p>
               <p>
                 What I care about: type that breathes, interactions that feel
                 good in the hand, and interfaces that aren&rsquo;t embarrassed
                 to be a little fun.
               </p>
+              <p>
+                Away from the editor I&rsquo;m usually carrying a camera around
+                Philadelphia after dark, or working through a stack of books I
+                keep{" "}
+                <em style={{ color: BRAND.yellow }}>
+                  slightly too many notes on
+                </em>
+                . Both live on this site.
+              </p>
             </div>
           </Reveal>
         </div>
+
+        <Reveal delay={0.12}>
+          <div
+            className="mt-16 flex items-center gap-3 font-mono text-[11px] tracking-[2px] uppercase md:mt-20"
+            style={{ color: "var(--site-inv-muted)" }}
+          >
+            <span>Elsewhere</span>
+            <span
+              className="h-px flex-1"
+              style={{ background: "var(--site-inv-line)" }}
+            />
+          </div>
+
+          <ul className="mt-7 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+            {THREADS.map((thread) => (
+              <li key={thread.href}>
+                <a
+                  href={thread.href}
+                  className="group block pt-[13px] transition-transform duration-[350ms] ease-[var(--ease-house)] hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+                  style={{ borderTop: `2px solid ${thread.accent}` }}
+                >
+                  <span
+                    className="font-mono text-[10px] tracking-[1.6px] uppercase"
+                    style={{ color: "var(--site-inv-muted)" }}
+                  >
+                    {thread.meta}
+                  </span>
+                  <span className="mt-[5px] flex items-baseline gap-2 font-serif text-[21px]">
+                    {thread.title}
+                    <span
+                      aria-hidden="true"
+                      className="translate-x-0 text-[15px] opacity-0 transition-all duration-[350ms] ease-[var(--ease-house)] group-hover:translate-x-1 group-hover:opacity-100 group-focus-visible:translate-x-1 group-focus-visible:opacity-100"
+                    >
+                      &rarr;
+                    </span>
+                  </span>
+                  <span
+                    className="mt-[3px] block text-[14.5px] leading-[1.5]"
+                    style={{ color: "var(--site-inv-muted)" }}
+                  >
+                    {thread.note}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </div>
     </section>
   );
