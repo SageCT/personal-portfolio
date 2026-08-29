@@ -1,9 +1,9 @@
 "use client";
 
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { BRAND, ConfettiField } from "@/components/site/brand";
 import { Reveal } from "@/components/site/reveal";
-import { cn } from "@/lib/utils";
 
 const ROLES = [
   { label: "fullstack engineer", color: BRAND.red },
@@ -13,6 +13,10 @@ const ROLES = [
 ] as const;
 
 const ROLE_INTERVAL = 2600;
+
+/** Seconds between one letter starting and the next. */
+const CHAR_IN = 0.028;
+const CHAR_OUT = 0.012;
 
 export function Hero() {
   return (
@@ -124,14 +128,18 @@ function Squiggle() {
 }
 
 /**
- * Cycles job titles in a clipped slot so each one flips up into place.
+ * Cycles job titles, one letter at a time.
  *
- * Every label is rendered into the same grid cell — the inactive ones stay in
- * layout but hidden, so the slot is always as wide as the longest title and the
- * sentence after it never reflows mid-flip.
+ * Each label enters as a row of characters springing up from below the slot,
+ * staggered left to right, and leaves the same way. The slot is emptied before
+ * it refills — `mode="wait"` holds the incoming label until the outgoing one
+ * has cleared, so the two never share the space. Every label is also rendered
+ * invisibly into the same grid cell, which keeps the slot as wide as the
+ * longest title so the sentence after it never reflows mid-swap.
  */
 function RoleCycler() {
   const [index, setIndex] = useState(0);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const id = setInterval(
@@ -141,22 +149,66 @@ function RoleCycler() {
     return () => clearInterval(id);
   }, []);
 
+  const role = ROLES[index];
+
   return (
     <span className="inline-grid h-[1.55em] overflow-hidden align-bottom">
-      {ROLES.map((role, i) => (
+      {/* Width reservation only — never painted, never announced. */}
+      {ROLES.map((r) => (
         <span
-          key={role.label}
-          className={cn(
-            "col-start-1 row-start-1 font-semibold whitespace-nowrap",
-            i === index ? "animate-roleflip" : "invisible",
-          )}
-          style={{ color: role.color }}
-          // The label changes on a timer; announcing every flip would be noise.
+          key={r.label}
           aria-hidden="true"
+          className="invisible col-start-1 row-start-1 font-semibold whitespace-nowrap"
         >
-          {role.label}
+          {r.label}
         </span>
       ))}
+
+      {/* One label in the cell at a time — the old one leaves, then the new
+          one arrives. */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={role.label}
+          // The label changes on a timer; announcing every flip would be noise.
+          aria-hidden="true"
+          className="col-start-1 row-start-1 flex font-semibold whitespace-nowrap"
+          style={{ color: role.color }}
+        >
+          {[...role.label].map((char, i) => (
+            <motion.span
+              // Characters repeat within a label, so the index is the key.
+              key={`${role.label}-${i}`}
+              className="inline-block will-change-transform"
+              initial={{ opacity: 0, y: "0.9em", filter: "blur(5px)" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                filter: "blur(0px)",
+                transition: {
+                  delay: reduced ? 0 : i * CHAR_IN,
+                  y: { type: "spring", stiffness: 520, damping: 32, mass: 0.6 },
+                  opacity: { duration: 0.26, ease: [0.2, 0.8, 0.2, 1] },
+                  filter: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] },
+                },
+              }}
+              exit={{
+                opacity: 0,
+                y: "-0.75em",
+                filter: "blur(4px)",
+                transition: {
+                  delay: reduced ? 0 : i * CHAR_OUT,
+                  duration: 0.22,
+                  ease: [0.4, 0, 1, 1],
+                },
+              }}
+            >
+              {/* Spaces need a glyph of their own once each letter is a box. */}
+              {char === " " ? "\u00A0" : char}
+            </motion.span>
+          ))}
+        </motion.span>
+      </AnimatePresence>
+
       <span className="sr-only">fullstack engineer</span>
     </span>
   );
